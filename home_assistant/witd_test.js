@@ -40,8 +40,27 @@ callback = function(response) {
 console.log('sending request');
 http.get(options, callback);
 
-cmd_to_intent(ai_eng_inst, cb) {
-        
+var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
+        http.get(ai_eng_inst.options, cb(response) {
+                var str = ''
+                response.on('data', function (chunk) {
+                        str += chunk;
+                });
+                response.on('end', function () {
+                        //console.log(str);
+                        var parsed = JSON.parse(str);
+                        var out = parsed.outcomes[0];
+                        for (i in out) {
+                                console.log('key is ' + i + 'value is ' +
+                                                                out[i]);
+                        }
+                        console.log(out);
+                        console.log(out.confidence);
+                        console.log('intent is ' + out['confidence']);
+                        ai_eng_cb(intent); 
+                });
+        });
+             
 }
 
 function ai_eng (command, cb) {
@@ -64,24 +83,12 @@ ai_eng.prototype.process_cmd = function(cb) {
         path = '/text?' + command;
         this.options.path = path;
         this.cb = cb;
-        http.get(this.options, cb(response) {
-                var str = ''
-                response.on('data', function (chunk) {
-                        str += chunk;
-                });
+        cmd_to_intent(this, function(intent) {
+                var intent_handler = pianobar.cmd_supported(intent);
+                pianobar.exe_cmd(intent_handler);
 
-                response.on('end', function () {
-                //console.log(str);
-                        var parsed = JSON.parse(str);
-                        var out = parsed.outcomes[0];
-                        for (i in out) {
-                                console.log('key is ' + i + 'value is ' + out[i]);
-                        }
-                        console.log(out);
-                        console.log(out.confidence);
-                        console.log('intent is ' + out['confidence']); 
-                });
-        });
+        })
+
 };
 //This is the data we are posting, it needs to be a string or a buffer
 //req.write("hello world!");

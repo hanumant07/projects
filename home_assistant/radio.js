@@ -85,7 +85,7 @@ var quit = function(radio_inst) {
 }
 
 
-var play_cmd = {commands : ["play music", "resume", "play"], action : play};
+var play_cmd = {commands : ["play_music", "resume", "play"], action : play};
 var pause_cmd = {commands : ["pause music", "pause"], action : pause};
 var like_cmd = {commands : ["like song", "like"], action : love_song};
 var dislike_cmd = {commands : ["dislike song", "hate song"], action : hate_song};
