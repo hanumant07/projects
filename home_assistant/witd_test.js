@@ -63,15 +63,15 @@ var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
              
 }
 
-function ai_eng (command, cb) {
-        this.cb = cb;
+function ai_eng (command) {
+        
         this.command = command;
         this.options = {
                 host: 'localhost',
                 port: '9877'
                 path: '/text?'
         }
-        events.emitter.call(this);
+        //events.emitter.call(this);
 }
 
 
@@ -86,10 +86,26 @@ ai_eng.prototype.process_cmd = function(cb) {
         cmd_to_intent(this, function(intent) {
                 var intent_handler = pianobar.cmd_supported(intent);
                 pianobar.exe_cmd(intent_handler);
+                if (intent) {
+                        var intent_handler = pianobar.cmd_supported(intent);
+                        pianobar.exe_cmd(intent_handler, function(result)) {
+                                if (result.err)
+                                        /* Handle error. Emit appropriate event*/
+                                else
+                                        /* Emit succes when returned. */
+                        });
+                } else {
+                        /* Unable to find corresponding intent with any confidence */
 
+                }
         })
 
 };
+
+var example = new ai_eng("play music");
+example.process_cmd(function (result) {
+});
+
 //This is the data we are posting, it needs to be a string or a buffer
 //req.write("hello world!");
 //req.end();
