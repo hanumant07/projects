@@ -36,6 +36,27 @@ var exe_cmd = function(entry, result_cb) {
 	entry.action(this, result_cb);
 }
 
+/*
+ * msg_radio_inst: Send command to pianobar instance and transition state
+ * @radio_inst: pianobar instance
+ * @msg: message to be sent, including state to transition to.
+ * @result_cb: callback to be invoked once message has been sent.
+ */
+var msg_radio_inst = function(radio_inst, msg, result_cb) {
+	var res = radio_inst.child_process.exec(msg.cmd,
+			function(err, stdout, stderr) {
+				if (err !== null) {
+					console.log('failed to exe ' +
+								msg.cmd);
+					result_cb('failed');
+				} else {
+					radio_inst.state = msg.state;
+					result_cb(undefined);
+				}
+			});
+
+}
+
 var play = function(radio_inst, result_cb) {
 
 	var err = undefined;
@@ -55,42 +76,60 @@ var play = function(radio_inst, result_cb) {
 	result_cb(err);
 }
 
-var pause = function(radio_inst) {
+var pause = function(radio_inst, result_cb) {
+	var msg = {};
+	msg.state = "paused";
+	msg.cmd = play_pause;
 	if (radio_inst.state == "play") {
-		var res = child_process.exec(play_pause);
-		radio_inst.state = "paused";
+		msg_radio_inst(radio_inst, msg, result_cb);
+	} else {
+		result_cb('Music not playing');
 	}
 }
 
-var nextsong = function(radio_inst) {
-	var res = child_process.exec(next_song);
+var nextsong = function(radio_inst, result_cb) {
+	var msg = {};
+	msg.state = radio_inst.state;
+	msg.cmd = next_song;
+	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var volume_up = function(radio_inst) {
-	var res = child_process.exec(vol_up);
+var volume_up = function(radio_inst, result_cb) {
+	var msg = {};
+	msg.state = radio_inst.state;
+	msg.cmd = vol_up;
+	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
 var volume_down = function(radio_inst) {
-	var res = child_process.exec(vol_down);
+	var msg = {};
+	msg.state = radio_inst.state;
+	msg.cmd = vol_down;
+	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
 var love_song = function(radio_inst) {
-	var res = child_process.exec(like_song);
+	var msg = {};
+	msg.state = radio_inst.state;
+	msg.cmd = like_song;
+	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var hate_song = function(radio_inst) {
-	var res = child_process.exec(dislike_song);
+var hate_song = function(radio_inst, result_cb) {
+	var msg = {};
+	msg.state = radio_inst.state;
+	msg.cmd = hate_song;
 }
 
 var init = function() {
 	state = "off"
 }
-/*
-var toggle_station = function() {
-	var res = child_process.exec(change_station);
-}
-*/
-var quit = function(radio_inst) {
+
+var quit = function(radio_inst, result_cb) {
+	radio_inst.pianobar_inst.on('close', function(code, signal) {
+		console.log('child process terminated with signal ' + signal);
+		result_cb(undefined);
+	}
 	var res = child_process.exec(off);
 	radio_inst.state = "off";
 }
@@ -114,13 +153,7 @@ radio_cmds[5] = vol_up_cmd;
 radio_cmds[6] = vol_down_cmd;
 radio_cmds[7] = off_cmd;
 
-/*
-pianobar = new radio();
-console.log('state is ' + pianobar.state);
-var entry = pianobar.supported_cmd("play music");
-console.log ('entry value is ' + entry);
-pianobar.exe_cmd(entry);
-*/
+
 var exports = module.exports;
 exports.radio_cmds = radio_cmds;
 exports.cmd_supported = supported_cmd;
