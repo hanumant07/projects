@@ -101,14 +101,14 @@ var volume_up = function(radio_inst, result_cb) {
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var volume_down = function(radio_inst) {
+var volume_down = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = vol_down;
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var love_song = function(radio_inst) {
+var love_song = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = like_song;
@@ -119,6 +119,7 @@ var hate_song = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = hate_song;
+	msg_radio_inst(radio_inst, msg, result_cb)
 }
 
 var init = function() {
