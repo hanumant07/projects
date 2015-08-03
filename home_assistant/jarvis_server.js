@@ -2,19 +2,12 @@
  * Node JS based server
  */
 
-
-
 //set up HTTP server to accept command
 var http = require("http");
 var ai_eng = require('./ai_eng');
 var querystring = require('querystring');
 var util = require('util');
 
-
-
-//alarm module
-//var alarm = require('alarm');
-//alarm = new alarm();
 
 var process_command = function(res, command) {
 	var ai_inst = new ai_eng(command);
@@ -50,16 +43,6 @@ var server = http.createServer(function(req, res) {
 			var command = JSON.stringify(body);
 			process_command(res, command);
 			console.log('new string ' + command);
-/*			if (body.Command) {
-				console.log("command received");
-				var parameter = body.Command;
-			if(parameter) {
-				alarm.process_command(parameter);
-			}
-		}
-
-			res.end();
-*/
 		});
 	}
 });
