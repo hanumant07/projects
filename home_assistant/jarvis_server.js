@@ -6,14 +6,28 @@
 
 //set up HTTP server to accept command
 var http = require("http");
-//var witd = require('./witd_test');
+var ai_eng = require('./ai_eng');
 var querystring = require('querystring');
 var util = require('util');
+
 
 
 //alarm module
 //var alarm = require('alarm');
 //alarm = new alarm();
+
+var process_command = function(res, command) {
+	var ai_inst = new ai_eng(command);
+	ai_inst.process_cmd(function (err) {
+		if (err) {
+			console.log('Error while processing cmd ' + command);
+			console.log('Error is ' + err);
+		} else {
+			console.log('command handled successfully')
+			res.end();
+		}
+	});
+}
 
 var server = http.createServer(function(req, res) { 
 	var body = "";
@@ -34,6 +48,7 @@ var server = http.createServer(function(req, res) {
 			console.log('POSTed: ' + body);
 			res.writeHead(200, {"Content-Type": "text/html"});
 			var command = JSON.stringify(body);
+			process_command(res, command);
 			console.log('new string ' + command);
 /*			if (body.Command) {
 				console.log("command received");
@@ -42,8 +57,9 @@ var server = http.createServer(function(req, res) {
 				alarm.process_command(parameter);
 			}
 		}
-*/
+
 			res.end();
+*/
 		});
 	}
 });
