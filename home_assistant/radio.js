@@ -43,7 +43,7 @@ var exe_cmd = function(entry, result_cb) {
  * @result_cb: callback to be invoked once message has been sent.
  */
 var msg_radio_inst = function(radio_inst, msg, result_cb) {
-	var res = radio_inst.child_process.exec(msg.cmd,
+	var res = child_process.exec(msg.cmd,
 			function(err, stdout, stderr) {
 				if (err !== null) {
 					console.log('failed to exe ' +
