@@ -137,14 +137,14 @@ var quit = function(radio_inst, result_cb) {
 }
 
 
-var play_cmd = {commands : ["play_radio", "resume", "play"], action : play};
-var pause_cmd = {commands : ["pause_radio", "pause"], action : pause};
-var like_cmd = {commands : ["like_song", "like"], action : love_song};
-var dislike_cmd = {commands : ["hate_song", "hate song"], action : hate_song};
-var next_song_cmd = {commands : ["next_song", "next song"], action : nextsong};
-var vol_up_cmd = {commands : ["increase_volume", "increase volume"], action : volume_up};
-var vol_down_cmd = {commands : ["lower_volume", "decrease volume"], action : volume_down};
-var off_cmd = {commands : ["stop_music", "turn off music"], action : quit};
+var play_cmd = {commands : "play_radio", action : play};
+var pause_cmd = {commands : "pause_radio", action : pause};
+var like_cmd = {commands : "like_song", action : love_song};
+var dislike_cmd = {commands : "hate_song", action : hate_song};
+var next_song_cmd = {commands : "next_song", action : nextsong};
+var vol_up_cmd = {commands : "increase_volume", action : volume_up};
+var vol_down_cmd = {commands : "lower_volume", action : volume_down};
+var off_cmd = {commands : "stop_music", action : quit};
 var radio_cmds = new Array(8);
 radio_cmds[0] = play_cmd;
 radio_cmds[1] = pause_cmd;
@@ -157,7 +157,7 @@ radio_cmds[7] = off_cmd;
 
 
 var exports = module.exports;
-exports.radio_cmds = radio_cmds;
+exports.intents = radio_cmds;
 exports.cmd_supported = supported_cmd;
 exports.exe_cmd = exe_cmd;
 exports.state = state;

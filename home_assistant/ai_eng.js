@@ -1,6 +1,20 @@
 var http = require('http');
 var querry = require('querystring');
 var pianobar = require('./radio.js');
+var feature_directory = {};
+
+var populate_dictionary = function(feature) {
+        feature.intents.forEach(function(entry) {
+                var val = {};
+                if (entry.commands in feature_directory) {
+                        console.log('intent already exists');
+                } else {
+                        val.action = entry.action;
+                        val.feature = feature;
+                        feature_directory.[entry.commands] = val;
+                }
+        });
+};
 
 
 var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
@@ -22,7 +36,17 @@ var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
                         console.log(out.confidence);
                         console.log('intent is ' + out['confidence']);
                         if (out.confidence > 0.5) {
-                                ai_eng_cb(out.intent);
+                                var intent = feature_dictionary[out.intent];
+
+                                if (intent) {
+                                        console.log('feature dictionary lookup'
+                                                                        + intent);
+                                        ai_eng_cb(intent);
+                                } else {
+                                        console.log('no such feature ' + 
+                                                'supported by home assistant');
+                                        ai_eng_cb('undefined');
+                                }
                         } else {
                                 console.log ('cannot translate to intent');
                                 ai_eng_cb(undefined);
@@ -54,8 +78,10 @@ ai_eng.prototype.process_cmd = function(cb) {
         this.cb = cb;
         cmd_to_intent(this, function(intent) {
                 if (intent) {
-                        var intent_handler = pianobar.cmd_supported(intent);
-                        pianobar.exe_cmd(intent_handler, function(err) {
+                        //handler = feature_dictionary[intent];
+                        intent.action(intent.feature, function(err) {
+                        //var intent_handler = pianobar.cmd_supported(intent);
+                        //pianobar.exe_cmd(intent_handler, function(err) {
                                 if (err) {
                                         this.err = err;
                                         cb(this.err)
@@ -71,5 +97,7 @@ ai_eng.prototype.process_cmd = function(cb) {
         })
 
 };
+
+populate_dictionary(pianobar);
 
 module.exports = ai_eng;
