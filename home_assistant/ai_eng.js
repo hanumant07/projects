@@ -11,7 +11,7 @@ var populate_dictionary = function(feature) {
                 } else {
                         val.action = entry.action;
                         val.feature = feature;
-                        feature_directory.[entry.commands] = val;
+                        feature_directory[entry.commands] = val;
                 }
         });
 };
@@ -36,10 +36,10 @@ var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
                         console.log(out.confidence);
                         console.log('intent is ' + out['confidence']);
                         if (out.confidence > 0.5) {
-                                var intent = feature_dictionary[out.intent];
+                                var intent = feature_directory[out.intent];
 
                                 if (intent) {
-                                        console.log('feature dictionary lookup'
+                                        console.log('feature directory lookup'
                                                                         + intent);
                                         ai_eng_cb(intent);
                                 } else {
@@ -65,7 +65,6 @@ function ai_eng (command) {
         }
         this.err = undefined;
         console.log('Creating ai_eng for ' + command);
-        //events.emitter.call(this);
 }
 
 
@@ -78,23 +77,25 @@ ai_eng.prototype.process_cmd = function(cb) {
         this.cb = cb;
         cmd_to_intent(this, function(intent) {
                 if (intent) {
+                        console.log('found corresponding intent');
                         //handler = feature_dictionary[intent];
                         intent.action(intent.feature, function(err) {
                         //var intent_handler = pianobar.cmd_supported(intent);
                         //pianobar.exe_cmd(intent_handler, function(err) {
                                 if (err) {
-                                        this.err = err;
-                                        cb(this.err)
+                                        console.log('intent action returned error ' + err);
+                                        cb(err)
                                 }
                                 else {
-                                        cb(this.err);
+                                        console.log('intent executed successfully');
+                                        cb(err);
                                 }
                         });
                 } else {
                         this.err = 'Unable to understand command';
                         cb(this.err);
                 }
-        })
+        });
 
 };
 

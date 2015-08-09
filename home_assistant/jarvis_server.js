@@ -14,9 +14,11 @@ var process_command = function(res, command) {
 	ai_inst.process_cmd(function (err) {
 		if (err) {
 			console.log('Error while processing cmd ' + command);
-			console.log('Error is ' + err);
+			delete ai_inst;
+			res.end();
 		} else {
-			console.log('command handled successfully')
+			console.log('command handled successfully');
+			delete ai_inst;
 			res.end();
 		}
 	});
