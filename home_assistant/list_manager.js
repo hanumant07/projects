@@ -12,6 +12,30 @@ var vol_up = "echo -n ) > /home/pi/.config/pianobar/ctl";
 var vol_down = "echo -n ( > /home/pi/.config/pianobar/ctl";
 var off = "echo -n q > /home/pi/.config/pianobar/ctl";
 
+
+var supported_cmd = function (input_cmd) {
+	var i = 0;
+	console.log ('input command is ' + input_cmd);
+	for (i = 0; i < radio_cmds.length; i++ ) {
+		var entry = radio_cmds[i];
+		console.log('current entry value ' + i);
+		for (cmd in entry.commands) {
+			console.log('command is ' + entry.commands[cmd]);
+			if (entry.commands[cmd] == input_cmd) {
+				console.log ('current command ' + entry.commands[cmd]);
+				return entry;
+			}
+		}
+	}
+	return undefined;
+}
+
+var exe_cmd = function(entry, result_cb) {
+	if (result_cb) {console.log('client expects call back')}
+	else { console.log('no call back provided'); }
+	entry.action(this, result_cb);
+}
+
 /*
  * msg_radio_inst: Send command to pianobar instance and transition state
  * @radio_inst: pianobar instance
@@ -33,7 +57,7 @@ var msg_radio_inst = function(radio_inst, msg, result_cb) {
 
 }
 
-var play = function(radio_inst, translation, result_cb) {
+var play = function(radio_inst, result_cb) {
 
 	var err = undefined;
 	if (radio_inst.state == "paused") {
@@ -52,7 +76,7 @@ var play = function(radio_inst, translation, result_cb) {
 	result_cb(err);
 }
 
-var pause = function(radio_inst, translation, result_cb) {
+var pause = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = "paused";
 	msg.cmd = play_pause;
@@ -63,35 +87,35 @@ var pause = function(radio_inst, translation, result_cb) {
 	}
 }
 
-var nextsong = function(radio_inst, translation, result_cb) {
+var nextsong = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = next_song;
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var volume_up = function(radio_inst, translation, result_cb) {
+var volume_up = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = vol_up;
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var volume_down = function(radio_inst, translation, result_cb) {
+var volume_down = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = vol_down;
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var love_song = function(radio_inst, translation, result_cb) {
+var love_song = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = like_song;
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
-var hate_song = function(radio_inst, translation, result_cb) {
+var hate_song = function(radio_inst, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = hate_song;
@@ -102,7 +126,7 @@ var init = function() {
 	state = "off"
 }
 
-var quit = function(radio_inst, translation, result_cb) {
+var quit = function(radio_inst, result_cb) {
 	var res = undefined;
 	radio_inst.pianobar_ps.on('close', function(code, signal) {
 		console.log('child process terminated with signal ' + signal);
@@ -134,4 +158,8 @@ radio_cmds[7] = off_cmd;
 
 var exports = module.exports;
 exports.intents = radio_cmds;
+exports.cmd_supported = supported_cmd;
+exports.exe_cmd = exe_cmd;
 exports.state = state;
+
+

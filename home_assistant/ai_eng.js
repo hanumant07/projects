@@ -34,22 +34,22 @@ var cmd_to_intent = function(ai_eng_inst, ai_eng_cb) {
                         }
                         console.log(out);
                         console.log(out.confidence);
-                        console.log('intent is ' + out['confidence']);
+                        console.log('intent is ' + out['intent']);
                         if (out.confidence > 0.5) {
                                 var intent = feature_directory[out.intent];
 
                                 if (intent) {
                                         console.log('feature directory lookup'
                                                                         + intent);
-                                        ai_eng_cb(intent);
+                                        ai_eng_cb(intent, parsed);
                                 } else {
                                         console.log('no such feature ' + 
                                                 'supported by home assistant');
-                                        ai_eng_cb('undefined');
+                                        ai_eng_cb(undefined, undefined);
                                 }
                         } else {
                                 console.log ('cannot translate to intent');
-                                ai_eng_cb(undefined);
+                                ai_eng_cb(undefined, undefined);
                         } 
                 });
         });
@@ -75,19 +75,18 @@ ai_eng.prototype.process_cmd = function(cb) {
         path = '/text?' + command;
         this.options.path = path;
         this.cb = cb;
-        cmd_to_intent(this, function(intent) {
+        cmd_to_intent(this, function(intent, translation) {
                 if (intent) {
                         console.log('found corresponding intent');
-                        //handler = feature_dictionary[intent];
-                        intent.action(intent.feature, function(err) {
-                        //var intent_handler = pianobar.cmd_supported(intent);
-                        //pianobar.exe_cmd(intent_handler, function(err) {
+                        intent.action(intent.feature, translation,
+                        function(err) {
                                 if (err) {
-                                        console.log('intent action returned error ' + err);
+                                        console.log('action returned error ' +
+                                                                        err);
                                         cb(err)
                                 }
                                 else {
-                                        console.log('intent executed successfully');
+                                        console.log('action successfull');
                                         cb(err);
                                 }
                         });
