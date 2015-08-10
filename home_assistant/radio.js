@@ -8,8 +8,8 @@ var play_pause =  "echo -n p > /home/pi/.config/pianobar/ctl";
 var like_song = "echo -n + > /home/pi/.config/pianobar/ctl";
 var dislike_song = "echo -n - > /home/pi/.config/pianobar/ctl";
 var next_song = "echo -n n > /home/pi/.config/pianobar/ctl";
-var vol_up = "echo -n ) > /home/pi/.config/pianobar/ctl";
-var vol_down = "echo -n ( > /home/pi/.config/pianobar/ctl";
+var vol_up = "echo -n ')' > /home/pi/.config/pianobar/ctl";
+var vol_down = "echo -n '(' > /home/pi/.config/pianobar/ctl";
 var off = "echo -n q > /home/pi/.config/pianobar/ctl";
 
 /*
@@ -118,7 +118,7 @@ var pause_cmd = {commands : "pause_radio", action : pause};
 var like_cmd = {commands : "like_song", action : love_song};
 var dislike_cmd = {commands : "hate_song", action : hate_song};
 var next_song_cmd = {commands : "next_song", action : nextsong};
-var vol_up_cmd = {commands : "increase_volume", action : volume_up};
+var vol_up_cmd = {commands : "Increase_volume", action : volume_up};
 var vol_down_cmd = {commands : "lower_volume", action : volume_down};
 var off_cmd = {commands : "stop_music", action : quit};
 var radio_cmds = new Array(8);
