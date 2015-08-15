@@ -94,7 +94,7 @@ var love_song = function(radio_inst, translation, result_cb) {
 var hate_song = function(radio_inst, translation, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
-	msg.cmd = hate_song;
+	msg.cmd = dislike_song;
 	msg_radio_inst(radio_inst, msg, result_cb)
 }
 
