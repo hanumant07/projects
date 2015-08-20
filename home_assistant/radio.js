@@ -1,8 +1,8 @@
 var child_process = require('child_process');
+var tts = require('text_2_speech');
 var fs = require('fs');
 
 var state = "off";
-
 
 var play_pause =  "echo -n p > /home/pi/.config/pianobar/ctl";
 var like_song = "echo -n + > /home/pi/.config/pianobar/ctl";
@@ -116,15 +116,30 @@ var quit = function(radio_inst, translation, result_cb) {
 var get_info = function(radio_inst, result_cb, type) {
 	var inputs = ['album', 'artist', 'song'];
 	var current_info = fs.readFileSync(nowplaying).toString().split('--');
+	var str_to_speech = "Nothing";
 	pause(radio_inst, undefined,
 		function(err) {
 			if (err) {
 				console.log('cannot pause song REASON: ' + err);
 				result_cb(undefined);
-			} else
+			} else {
 				if (type === 'song')
+					str_to_speech = 'Name of the song is ' + current_info[0];
+				else if (type === 'artist')
+					str_to_speech = 'Name of the artist is ' + current_info[1];
+				else if (type === 'album')
+					str_to_speech = 'Name of the album is ' + current_info[2];
+				else
+					console.log('unknown information requested');
+				if (str_to_speech != "nothing") {
+					var info_2_speech = new tts(str_to_speech);
+					info_2_speech.speak(function () {
+						result_cb(undefined);
+					});
+				} else
+					result_cb(undefined);
+			}
 		});
-	result_cb(undefined);
 	console.log('song is ' + current_info[0] + ' artist is ' + current_info[1] + 'album is ' + current_info[2]);
 }
 
