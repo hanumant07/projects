@@ -11,7 +11,8 @@ var next_song = "echo -n n > /home/pi/.config/pianobar/ctl";
 var vol_up = "echo -n ')' > /home/pi/.config/pianobar/ctl";
 var vol_down = "echo -n '(' > /home/pi/.config/pianobar/ctl";
 var off = "echo -n q > /home/pi/.config/pianobar/ctl";
-
+var info = "echo -n i > /home/pi/.config/pianobar/ctl"
+var nowplaying = '/home/pi/.config/pianobar/nowplaying';
 /*
  * msg_radio_inst: Send command to pianobar instance and transition state
  * @radio_inst: pianobar instance
@@ -112,6 +113,24 @@ var quit = function(radio_inst, translation, result_cb) {
 	radio_inst.state = "off";
 }
 
+var get_info = function(radio_inst, result_cb, type) {
+	var inputs = ['album', 'artist', 'song'];
+	var current_info = fs.readFileSync(nowplaying).toString().split('--');
+	pause(radio_inst, undefined,
+		function(err) {
+			if (err) {
+				console.log('cannot pause song REASON: ' + err);
+				result_cb(undefined);
+			} else
+				if (type === 'song')
+		});
+	result_cb(undefined);
+	console.log('song is ' + current_info[0] + ' artist is ' + current_info[1] + 'album is ' + current_info[2]);
+}
+
+var get_songname = function(radio_inst, translation, result_cb) {
+	get_info(radio_inst, result_cb, 'song');
+}
 
 var play_cmd = {commands : "play_radio", action : play};
 var pause_cmd = {commands : "pause_radio", action : pause};
@@ -121,7 +140,8 @@ var next_song_cmd = {commands : "next_song", action : nextsong};
 var vol_up_cmd = {commands : "Increase_volume", action : volume_up};
 var vol_down_cmd = {commands : "lower_volume", action : volume_down};
 var off_cmd = {commands : "stop_music", action : quit};
-var radio_cmds = new Array(8);
+var get_song = {commands : "get_songname", action : get_songname};
+var radio_cmds = new Array(9);
 radio_cmds[0] = play_cmd;
 radio_cmds[1] = pause_cmd;
 radio_cmds[2] = like_cmd;
@@ -130,7 +150,7 @@ radio_cmds[4] = next_song_cmd;
 radio_cmds[5] = vol_up_cmd;
 radio_cmds[6] = vol_down_cmd;
 radio_cmds[7] = off_cmd;
-
+radio_cmds[8] = get_song;
 
 var exports = module.exports;
 exports.intents = radio_cmds;
