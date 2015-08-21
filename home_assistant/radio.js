@@ -120,6 +120,11 @@ var quit = function(radio_inst, translation, result_cb) {
 	radio_inst.state = "off";
 }
 
+/*get_info: Get information about currently playing song
+ *radio_inst: Instance of the radio module
+ *result_cb: user specified result call back
+ *type: type of information requested artist, song, album
+ */
 var get_info = function(radio_inst, result_cb, type) {
 	var current_info = fs.readFileSync(nowplaying).toString().split('--');
 	var str_to_speech = "Nothing";
@@ -152,7 +157,6 @@ var get_info = function(radio_inst, result_cb, type) {
 			}
 		}
 	);
-	console.log('song is ' + current_info[0] + ' artist is ' + current_info[1] + 'album is ' + current_info[2]);
 }
 
 var get_songname = function(radio_inst, translation, result_cb) {
