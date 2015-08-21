@@ -42,6 +42,13 @@ var play = function(radio_inst, translation, result_cb) {
 		radio_inst.state = "play";
 	} else if (radio_inst.state == "off") {
 		radio_inst.pianobar_ps = child_process.spawn("pianobar");
+		radio_inst.pianobar_ps.stdout.on('data', function (data) {
+			console.log ('stdout: ' + data);
+		});
+		radio_inst.pianobar_ps.stderr.on('data', function (data) {
+			console.log ('stderr: ' + data);
+		});
+
 		//radio_inst.pianobar_ps.stdout.on('data', function(data) {
 		//console.log('stdout: ' + data);
 		//});
