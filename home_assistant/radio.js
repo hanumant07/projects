@@ -1,5 +1,5 @@
 var child_process = require('child_process');
-var tts = require('text_2_speech');
+var tts = require('./text_2_speech.js');
 var fs = require('fs');
 
 var state = "off";
@@ -114,7 +114,6 @@ var quit = function(radio_inst, translation, result_cb) {
 }
 
 var get_info = function(radio_inst, result_cb, type) {
-	var inputs = ['album', 'artist', 'song'];
 	var current_info = fs.readFileSync(nowplaying).toString().split('--');
 	var str_to_speech = "Nothing";
 	pause(radio_inst, undefined,
@@ -134,17 +133,31 @@ var get_info = function(radio_inst, result_cb, type) {
 				if (str_to_speech != "nothing") {
 					var info_2_speech = new tts(str_to_speech);
 					info_2_speech.speak(function () {
+						console.log('returning to requestor');
 						result_cb(undefined);
+						setTimeout(function() {
+							console.log('resuming radio');
+							play(radio_inst, undefined, function() {});
+						}, 2000);
 					});
 				} else
 					result_cb(undefined);
 			}
-		});
+		}
+	);
 	console.log('song is ' + current_info[0] + ' artist is ' + current_info[1] + 'album is ' + current_info[2]);
 }
 
 var get_songname = function(radio_inst, translation, result_cb) {
 	get_info(radio_inst, result_cb, 'song');
+}
+
+var get_artistname = function(radio_inst, translation, result_cb) {
+	get_info(radio_inst, result_cb, 'artist');
+}
+
+var get_albumname = function(radio_inst, translation, result_cb) {
+	get_info(radio_inst, result_cb, 'album');
 }
 
 var play_cmd = {commands : "play_radio", action : play};
@@ -156,7 +169,9 @@ var vol_up_cmd = {commands : "Increase_volume", action : volume_up};
 var vol_down_cmd = {commands : "lower_volume", action : volume_down};
 var off_cmd = {commands : "stop_music", action : quit};
 var get_song = {commands : "get_songname", action : get_songname};
-var radio_cmds = new Array(9);
+var get_artist = {commands : "get_artistname", action : get_artistname};
+var get_album = {commands : "get_albumname", action : get_albumname};
+var radio_cmds = new Array(11);
 radio_cmds[0] = play_cmd;
 radio_cmds[1] = pause_cmd;
 radio_cmds[2] = like_cmd;
@@ -166,6 +181,8 @@ radio_cmds[5] = vol_up_cmd;
 radio_cmds[6] = vol_down_cmd;
 radio_cmds[7] = off_cmd;
 radio_cmds[8] = get_song;
+radio_cmds[9] = get_artist;
+radio_cmds[10] = get_album;
 
 var exports = module.exports;
 exports.intents = radio_cmds;
