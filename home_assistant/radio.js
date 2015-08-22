@@ -31,7 +31,6 @@ var msg_radio_inst = function(radio_inst, msg, result_cb) {
 					result_cb(undefined);
 				}
 			});
-
 }
 
 var play = function(radio_inst, translation, result_cb) {
@@ -48,10 +47,6 @@ var play = function(radio_inst, translation, result_cb) {
 		radio_inst.pianobar_ps.stderr.on('data', function (data) {
 			console.log ('stderr: ' + data);
 		});
-
-		//radio_inst.pianobar_ps.stdout.on('data', function(data) {
-		//console.log('stdout: ' + data);
-		//});
 		radio_inst.state = "play";
 	} else {
 		console.log('unknown state');
