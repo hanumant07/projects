@@ -1,5 +1,6 @@
 var child_process = require('child_process');
 var tts = require('./text_2_speech.js');
+var audio_lock = require('./audio_lock.js');
 var fs = require('fs');
 
 var state = "off";
@@ -25,21 +26,38 @@ var msg_radio_inst = function(radio_inst, msg, result_cb) {
 				if (err !== null) {
 					console.log('failed to exe ' +
 								msg.cmd);
-					result_cb('failed');
+					if (msg.fail_text != undefined) {
+						var msg_2_speech = new tts(msg.fail_text);
+						msg_2_speech.speak(function () {
+							result_cb('failed');
+						});
+					} else
+						result_cb('failed');
 				} else {
 					radio_inst.state = msg.state;
-					result_cb(undefined);
+					if (msg.success_text != undefined) {
+						var msg_2_speech = new tts(msg.success_text);
+						msg_2_speech.speak(function () {
+							result_cb(undefined);
+						});
+					} else
+						result_cb(undefined);
 				}
 			});
 }
 
-var play = function(radio_inst, translation, result_cb) {
-
+var play_lock_acquired = function(lock_req) {
+	var play_data = lock_req.data;
+	var radio_inst = play_data.radio_inst;
+	var result_cb = play_data.result_cb;
 	var err = undefined;
+	console.log("audio lock acquired by radio");
 	if (radio_inst.state == "paused") {
+		console.log("radio resuming from pause");
 		var res = child_process.exec(play_pause);
 		radio_inst.state = "play";
 	} else if (radio_inst.state == "off") {
+		console.log("starting radio");
 		radio_inst.pianobar_ps = child_process.spawn("pianobar");
 		radio_inst.pianobar_ps.stdout.on('data', function (data) {
 			console.log ('stdout: ' + data);
@@ -53,6 +71,35 @@ var play = function(radio_inst, translation, result_cb) {
 		err = "Invalid state";
 	}
 	result_cb(err);
+};
+
+var play_lock_release = function(lock_req) {
+	var play_data = lock_req.data;
+	var radio_inst = play_data.radio_inst;
+	console.log("radio: audio lock release requested")
+	if (radio_inst.state == "play") {
+		pause(radio_inst, undefined, function(err) {
+			if (err)
+				console.log("Unable to pause audio");
+			audio_lock.release_lock(lock_req, true);
+		});
+	} else {
+		console.log("Wierd state, not in play, lock release");
+		audio_lock.release_lock(lock_req, false);
+	}
+};
+
+var play = function(radio_inst, translation, result_cb) {
+
+	var err = undefined;
+	var play_data = {};
+	play_data.radio_inst = radio_inst;
+	play_data.result_cb = result_cb;
+	audio_lock.request_lock(play_data, function(lock_req) {
+		radio_inst.audio_lock = lock_req;
+		lock_req.on("acquired", play_lock_acquired);
+		lock_req.on("req_release", play_lock_release);
+	});
 }
 
 var pause = function(radio_inst, translation, result_cb) {
@@ -77,6 +124,7 @@ var volume_up = function(radio_inst, translation, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = vol_up;
+	msg.fail_text = "unable to raise volume";
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
@@ -84,6 +132,7 @@ var volume_down = function(radio_inst, translation, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = vol_down;
+	msg.fail_text = "unable to lower volume";
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
@@ -91,6 +140,8 @@ var love_song = function(radio_inst, translation, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = like_song;
+	msg.success_text = "recording choice";
+	msg.fail_text = "unable to record choice";
 	msg_radio_inst(radio_inst, msg, result_cb);
 }
 
@@ -98,6 +149,8 @@ var hate_song = function(radio_inst, translation, result_cb) {
 	var msg = {};
 	msg.state = radio_inst.state;
 	msg.cmd = dislike_song;
+	msg.success_text = "recording choice";
+	msg.fail_text = "unable to record choice";
 	msg_radio_inst(radio_inst, msg, result_cb)
 }
 
@@ -113,6 +166,7 @@ var quit = function(radio_inst, translation, result_cb) {
 	});
 	res = child_process.exec(off);
 	radio_inst.state = "off";
+	audio_lock.release_lock(radio_inst.audio_lock, false);
 }
 
 /*get_info: Get information about currently playing song
@@ -123,35 +177,22 @@ var quit = function(radio_inst, translation, result_cb) {
 var get_info = function(radio_inst, result_cb, type) {
 	var current_info = fs.readFileSync(nowplaying).toString().split('--');
 	var str_to_speech = "Nothing";
-	pause(radio_inst, undefined,
-		function(err) {
-			if (err) {
-				console.log('cannot pause song REASON: ' + err);
-				result_cb(undefined);
-			} else {
-				if (type === 'song')
-					str_to_speech = 'Name of the song is ' + current_info[0];
-				else if (type === 'artist')
-					str_to_speech = 'Name of the artist is ' + current_info[1];
-				else if (type === 'album')
-					str_to_speech = 'Name of the album is ' + current_info[2];
-				else
-					console.log('unknown information requested');
-				if (str_to_speech != "nothing") {
-					var info_2_speech = new tts(str_to_speech);
-					info_2_speech.speak(function () {
-						console.log('returning to requestor');
-						result_cb(undefined);
-						setTimeout(function() {
-							console.log('resuming radio');
-							play(radio_inst, undefined, function() {});
-						}, 2000);
-					});
-				} else
-					result_cb(undefined);
-			}
-		}
-	);
+	if (type === 'song')
+		str_to_speech = 'Name of the song is ' + current_info[0];
+	else if (type === 'artist')
+		str_to_speech = 'Name of the artist is ' + current_info[1];
+	else if (type === 'album')
+		str_to_speech = 'Name of the album is ' + current_info[2];
+	else
+		console.log('unknown information requested');
+	if (str_to_speech != "nothing") {
+		var info_2_speech = new tts(str_to_speech);
+		info_2_speech.speak(function () {
+			console.log('returning to requestor');
+			result_cb(undefined);
+		});
+	} else
+		result_cb(undefined);
 }
 
 var get_songname = function(radio_inst, translation, result_cb) {
